@@ -1,21 +1,17 @@
-pipeline {
-    agent any
-    stages {
-        stage('Build') { 
-            steps {
-                sh 'mvn -B -DskipTests clean package' 
-            }
+node {
+    try {
+        stage('Build') {
+            sh 'mvn -B -DskipTests clean package'
         }
         stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
+            sh 'mvn test'
+        }
+    } catch (Exception e) {
+        currentBuild.result = 'FAILURE'
+        throw e
+    } finally {
+        stage('Post-build actions') {
+            junit 'target/surefire-reports/*.xml'
         }
     }
 }
-
